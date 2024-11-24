@@ -97,7 +97,7 @@ def test_case(kind, nodes_count, argument_test_imterval, function_values, arg_ra
     y_lagrange_chebyshov = [lagrange_polinom(x, nodes_count, f_range_chebyshov, arg_range_chebyshov) for x in argument_test_imterval]
     lagrange_chebyshov_time = time.time() - start_time
     
-    #testing using newton
+    #testing using Newton
     start_time = time.time()
     y_newton_equable = [newton_polinom(x, nodes_count, f_range_equable, arg_range_equable) for x in argument_test_imterval]
     newton_equable_time = time.time() - start_time
@@ -117,6 +117,23 @@ def test_case(kind, nodes_count, argument_test_imterval, function_values, arg_ra
     print(f"Max inaccuracy (Chebyshev Lagrange): {max_ch_lagrange:.6f}, Time = {lagrange_chebyshov_time:.6f} seconds")
     print(f"Max inaccuracy (Equable Newton): {max_eq_newton:.6f}, Time = {newton_equable_time:.6f} seconds")
     print(f"Max inaccuracy (Chebyshev Newton): {max_ch_newton:.6f}, Time = {newton_chebyshov_time:.6f} seconds\n")
+
+    #plot Lagrange and Newton polynomials
+    plt.plot(argument_test_imterval, y_lagrange_equable, label="Lagrange (Equable)", color="red", linestyle="--", linewidth=2)
+    plt.plot(argument_test_imterval, y_lagrange_chebyshov, label="Lagrange (Chebyshev)", color="blue", linestyle="--", linewidth=2)
+    plt.plot(argument_test_imterval, y_newton_equable, label="Newton (Equable)", color="orange", linestyle=":", linewidth=2)
+    plt.plot(argument_test_imterval, y_newton_chebyshov, label="Newton (Chebyshev)", color="green", linestyle=":", linewidth=2)
+    
+    #plot interpolation nodes
+    plt.scatter(arg_range_equable, f_range_equable, color="red", label="Equable Nodes", zorder=nodes_count)
+    plt.scatter(arg_range_chebyshov, f_range_chebyshov, color="blue", label="Chebyshev Nodes", zorder=nodes_count)
+
+    plt.title(f"{kind} Interpolation Visualization")
+    plt.xlabel("Argument")
+    plt.ylabel("Function Value")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
     #visualization of inaccuracies
     plt.figure(figsize=(12, 8))
