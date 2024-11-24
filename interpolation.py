@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -71,46 +72,79 @@ def calculate_inaccuracy(f, p):
     ])
     return inaccuracy_range, np.max(inaccuracy_range)
 
+def monotonous_check(f):
+    differences = np.diff(f)
+    if np.all(differences > 0):
+        print("The function is strictly increasing")
+        return True
+    elif np.all(differences < 0):
+        print("The function is strictly decreasing")
+        return True    
+    elif np.all(differences == 0):
+        print("The function is constant")
+        return True
+    else:
+        print("The function is not monotonous")
+        return False
+
+def test_case(kind, nodes_count, argument_test_imterval, function_values, arg_range_equable, arg_range_chebyshov, f_range_equable, f_range_chebyshov):
+    #testing using Lagrange
+    start_time = time.time()
+    y_lagrange_equable = [lagrange_polinom(x, nodes_count, f_range_equable, arg_range_equable) for x in argument_test_imterval]
+    lagrange_equable_time = time.time() - start_time
+    
+    start_time = time.time()
+    y_lagrange_chebyshov = [lagrange_polinom(x, nodes_count, f_range_chebyshov, arg_range_chebyshov) for x in argument_test_imterval]
+    lagrange_chebyshov_time = time.time() - start_time
+    
+    #testing using newton
+    start_time = time.time()
+    y_newton_equable = [newton_polinom(x, nodes_count, f_range_equable, arg_range_equable) for x in argument_test_imterval]
+    newton_equable_time = time.time() - start_time
+
+    start_time = time.time()
+    y_newton_chebyshov = [newton_polinom(x, nodes_count, f_range_chebyshov, arg_range_chebyshov) for x in argument_test_imterval]
+    newton_chebyshov_time = time.time() - start_time
+
+    #calculating inaccuracies
+    equable_lagrange_inaccuracy, max_eq_lagrange = calculate_inaccuracy(function_values, y_lagrange_equable)
+    chebyshov_lagrange_inaccuracy, max_ch_lagrange = calculate_inaccuracy(function_values, y_lagrange_chebyshov)
+    equable_newton_inaccuracy, max_eq_newton = calculate_inaccuracy(function_values, y_newton_equable)
+    chebyshov_newton_inaccuracy, max_ch_newton = calculate_inaccuracy(function_values, y_newton_chebyshov)
+
+    print(f"\n {kind} Interpolation Results:\n")
+    print(f"Max inaccuracy (Equable Lagrange): {max_eq_lagrange:.6f}, Time = {lagrange_equable_time:.6f} seconds")
+    print(f"Max inaccuracy (Chebyshev Lagrange): {max_ch_lagrange:.6f}, Time = {lagrange_chebyshov_time:.6f} seconds")
+    print(f"Max inaccuracy (Equable Newton): {max_eq_newton:.6f}, Time = {newton_equable_time:.6f} seconds")
+    print(f"Max inaccuracy (Chebyshev Newton): {max_ch_newton:.6f}, Time = {newton_chebyshov_time:.6f} seconds\n")
+
+    #visualization of inaccuracies
+    plt.figure(figsize=(12, 8))
+    plt.plot(argument_test_imterval, equable_lagrange_inaccuracy, label="Lagrange (Equable)", color="red", linewidth=4)
+    plt.plot(argument_test_imterval, chebyshov_lagrange_inaccuracy, label="Lagrange (Chebyshev)", color="blue", linewidth=4)
+    plt.plot(argument_test_imterval, equable_newton_inaccuracy, label="Newton (Equable)", color="orange", linewidth=2)
+    plt.plot(argument_test_imterval, chebyshov_newton_inaccuracy, label="Newton (Chebyshev)", color="green", linewidth=2)
+    plt.title(f"{kind} Interpolation Inaccuracies")
+    plt.xlabel("argument")
+    plt.ylabel("Inaccuracy")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
 if __name__ == "__main__":
+    
     nodes_count = user_input()
     #initialise interval of interpokation
     interval = np.linspace(INTERVAL_START, INTERVAL_FINISH, nodes_count)
     x_range_equable, y_range_equable, x_range_chebyshov, y_range_chebyshov = create_nodes(nodes_count)
     
-    x_test_interval = np.linspace(INTERVAL_START, INTERVAL_FINISH, 100)
-
-    #testing using Lagrange
-    y_lagrange_equable = [lagrange_polinom(x, nodes_count, y_range_equable, x_range_equable) for x in x_test_interval]
-    y_lagrange_chebyshov = [lagrange_polinom(x, nodes_count, y_range_chebyshov, x_range_chebyshov) for x in x_test_interval]
-    
-    #testing using newton
-    y_newton_equable = [newton_polinom(x, nodes_count, y_range_equable, x_range_equable) for x in x_test_interval]
-    y_newton_chebyshov = [newton_polinom(x, nodes_count, y_range_chebyshov, x_range_chebyshov) for x in x_test_interval]
-
     #setting actual values
+    x_test_interval = np.linspace(INTERVAL_START, INTERVAL_FINISH, 100)
     y_values = [function(x) for x in x_test_interval]
 
-    # Calculating inaccuracies
-    equable_lagrange_inaccuracy, max_eq_lagrange = calculate_inaccuracy(y_values, y_lagrange_equable)
-    chebyshov_lagrange_inaccuracy, max_ch_lagrange = calculate_inaccuracy(y_values, y_lagrange_chebyshov)
-    equable_newton_inaccuracy, max_eq_newton = calculate_inaccuracy(y_values, y_newton_equable)
-    chebyshov_newton_inaccuracy, max_ch_newton = calculate_inaccuracy(y_values, y_newton_chebyshov)
+    #true interpolation
+    test_case("True", nodes_count, x_test_interval, y_values, x_range_equable, x_range_chebyshov, y_range_equable, y_range_chebyshov)
 
-    print("\nInterpolation Results:\n")
-    print(f"Max inaccuracy (Equable Lagrange): {max_eq_lagrange:.6f}")
-    print(f"Max inaccuracy (Chebyshev Lagrange): {max_ch_lagrange:.6f}")
-    print(f"Max inaccuracy (Equable Newton): {max_eq_newton:.6f}")
-    print(f"Max inaccuracy (Chebyshev Newton): {max_ch_newton:.6f}\n")
-
-    # Visualization of inaccuracies
-    plt.figure(figsize=(12, 8))
-    plt.plot(x_test_interval, equable_lagrange_inaccuracy, label="Lagrange (Equable)", color="red", linewidth=4)
-    plt.plot(x_test_interval, chebyshov_lagrange_inaccuracy, label="Lagrange (Chebyshev)", color="blue", linewidth=4)
-    plt.plot(x_test_interval, equable_newton_inaccuracy, label="Newton (Equable)", color="orange", linewidth=2)
-    plt.plot(x_test_interval, chebyshov_newton_inaccuracy, label="Newton (Chebyshev)", color="green", linewidth=2)
-    plt.title("Interpolation Inaccuracies")
-    plt.xlabel("x")
-    plt.ylabel("Inaccuracy")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+    #inverse interpolation
+    if(monotonous_check(y_values)):
+        test_case("Inverse", nodes_count, y_values, x_test_interval, y_range_equable, y_range_chebyshov, x_range_equable, x_range_chebyshov)
